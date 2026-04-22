@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Fake News Detection</title>
+    <style>
+        body {
+            font-family: Arial;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            text-align: center;
+            padding: 40px;
+        }
+
+        textarea, input, select {
+            width: 60%;
+            padding: 10px;
+            margin: 10px;
+            border-radius: 5px;
+        }
+
+        button {
+            padding: 10px 20px;
+            background: green;
+            color: white;
+            border: none;
+            border-radius: 5px;
+        }
+
+        #result {
+            margin-top: 20px;
+            font-size: 22px;
+            font-weight: bold;
+        }
+
+        #status {
+            margin-top: 10px;
+            font-size: 16px;
+            color: #ffeb3b;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>📰 Fake News Detection</h1>
+
+    <button onclick="trainModel()">Train Model</button>
+    <div id="status"></div>
+
+    <h3>Enter News Text</h3>
+    <textarea id="text" rows="5"></textarea>
+
+    <h3>OR Enter News URL</h3>
+    <input type="text" id="url" placeholder="Paste news URL">
+
+    <br>
+
+    <select id="model">
+        <option>Logistic Regression</option>
+        <option>Decision Tree</option>
+        <option>Random Forest</option>
+    </select>
+
+    <br><br>
+
+    <button onclick="predictText()">Predict Text</button>
+    <button onclick="predictURL()">Predict URL</button>
+
+    <div id="result"></div>
+
+    <script>
+        function trainModel() {
+            const btn = event.target;
+            btn.disabled = true;
+            btn.innerText = "Training... (30-45 seconds)";
+            document.getElementById("status").innerText = "⏳ Training in progress...";
+
+            fetch('/train', { method: 'POST' })
+            .then(res => res.json())
+            .then(data => {
+                document.getElementById("status").innerText = "✅ Model trained successfully! You can now make predictions.";
+                btn.innerText = "Train Model";
+                btn.disabled = false;
+            })
+            .catch(error => {
+                document.getElementById("status").innerText = "❌ Training failed: " + error.message;
+                btn.innerText = "Train Model";
+                btn.disabled = false;
+            });
+        }
+
+        function predictText() {
+            const text = document.getElementById("text").value;
+            const model = document.getElementById("model").value;
+
+            if (!text.trim()) {
+                document.getElementById("result").innerText = "⚠️ Please enter some text first!";
+                return;
+            }
+
+            document.getElementById("result").innerText = "Processing...";
+
+            fetch('/predict', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({text, model})
+            })
+            .then(res => {
+                if (!res.ok) throw new Error(`Server error: ${res.status}`);
+                return res.json();
+            })
+            .then(data => {
+                document.getElementById("result").innerText = data.result || "No result received";
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                document.getElementById("result").innerText = "❌ Error: " + error.message;
+            });
+        }
+
+        function predictURL() {
+            const url = document.getElementById("url").value;
+            const model = document.getElementById("model").value;
+
+            if (!url.trim()) {
+                document.getElementById("result").innerText = "⚠️ Please enter a URL first!";
+                return;
+            }
+
+            document.getElementById("result").innerText = "Processing... (this may take a moment)";
+
+            fetch('/predict_url', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({url, model})
+            })
+            .then(res => {
+                if (!res.ok) throw new Error(`Server error: ${res.status}`);
+                return res.json();
+            })
+            .then(data => {
+                document.getElementById("result").innerText = data.result || "No result received";
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                document.getElementById("result").innerText = "❌ Error: " + error.message;
+            });
+        }
+    </script>
+
+</body>
+</html>
