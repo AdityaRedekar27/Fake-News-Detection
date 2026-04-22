@@ -31,6 +31,12 @@ The system allows users to:
 
 ---
 
+## Dataset
+Dataset is taken from Kaggle:
+https://www.kaggle.com/datasets/clmentbisaillon/fake-and-real-news-dataset
+
+---
+
 ## 🛠️ Technologies Used
 
 * **Frontend:** HTML, CSS, JavaScript
